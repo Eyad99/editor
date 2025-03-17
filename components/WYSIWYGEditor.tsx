@@ -82,160 +82,63 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({ value, onChange, classNam
 
 	const DefaultToolbar: React.FC<ToolbarProps> = ({ editorState, onToggle }) => {
 		const currentStyle = editorState.getCurrentInlineStyle();
-		const [pendingStyle, setPendingStyle] = useState<string | null>(null); // إضافة pendingStyle محليًا للاختبار
-
-		const handleToggle = (style: string) => {
-			onToggle(style);
-			setPendingStyle((prev) => (prev === style ? null : style)); // تحديث pendingStyle محليًا
-		};
-
 		return (
-			<div className='toolbar'>
+			<div
+				style={{
+					marginBottom: '10px',
+					padding: '4px',
+					backgroundColor: '#f5f5f5',
+					borderRadius: '4px',
+				}}
+			>
 				<button
 					type='button'
-					onClick={() => handleToggle('BOLD')}
-					className={`toolbar-button ${currentStyle.has('BOLD') || pendingStyle === 'BOLD' ? 'active' : ''}`}
+					onClick={() => onToggle('BOLD')}
+					style={{
+						marginRight: '8px',
+						padding: '4px 8px',
+						border: '1px solid #ccc',
+						backgroundColor: currentStyle.has('BOLD') ? '#e0e0e0' : 'white',
+						cursor: 'pointer',
+						borderRadius: '2px',
+						fontWeight: 'bold',
+					}}
 				>
 					Bold
 				</button>
 				<button
 					type='button'
-					onClick={() => handleToggle('ITALIC')}
-					className={`toolbar-button ${currentStyle.has('ITALIC') || pendingStyle === 'ITALIC' ? 'active' : ''}`}
+					onClick={() => onToggle('ITALIC')}
+					style={{
+						marginRight: '8px',
+						padding: '4px 8px',
+						border: '1px solid #ccc',
+						backgroundColor: currentStyle.has('ITALIC') ? '#e0e0e0' : 'white',
+						cursor: 'pointer',
+						borderRadius: '2px',
+						fontWeight: 'bold',
+					}}
 				>
 					Italic
 				</button>
 				<button
 					type='button'
-					onClick={() => handleToggle('UNDERLINE')}
-					className={`toolbar-button ${currentStyle.has('UNDERLINE') || pendingStyle === 'UNDERLINE' ? 'active' : ''}`}
+					onClick={() => onToggle('UNDERLINE')}
+					style={{
+						marginRight: '8px',
+						padding: '4px 8px',
+						border: '1px solid #ccc',
+						backgroundColor: currentStyle.has('UNDERLINE') ? '#e0e0e0' : 'white',
+						cursor: 'pointer',
+						borderRadius: '2px',
+						fontWeight: 'bold',
+					}}
 				>
 					Underline
 				</button>
-				<style jsx>{`
-					.toolbar {
-						margin-bottom: 10px;
-						padding: 4px;
-						background-color: #f5f5f5;
-						border-radius: 4px;
-					}
-					.toolbar-button {
-						margin-right: 8px;
-						padding: 4px 8px;
-						border: 1px solid #ccc;
-						background-color: white;
-						cursor: pointer;
-						border-radius: 2px;
-						font-weight: bold;
-					}
-					.toolbar-button.active {
-						background-color: #e0e0e0;
-					}
-				`}</style>
 			</div>
 		);
 	};
-
-	// const DefaultToolbar: React.FC<ToolbarProps> = ({ editorState, onToggle }) => {
-	// 	const currentStyle = editorState.getCurrentInlineStyle();
-	// 	return (
-	// 		<div className='toolbar'>
-	// 			<button type='button' onClick={() => onToggle('BOLD')} className={`toolbar-button ${currentStyle.has('BOLD') ? 'active' : ''}`}>
-	// 				Bold
-	// 			</button>
-	// 			<button type='button' onClick={() => onToggle('ITALIC')} className={`toolbar-button ${currentStyle.has('ITALIC') ? 'active' : ''}`}>
-	// 				Italic
-	// 			</button>
-	// 			<button
-	// 				type='button'
-	// 				onClick={() => onToggle('UNDERLINE')}
-	// 				className={`toolbar-button ${currentStyle.has('UNDERLINE') ? 'active' : ''}`}
-	// 			>
-	// 				Underline
-	// 			</button>
-	// 			<style jsx>{`
-	// 				.toolbar {
-	// 					margin-bottom: 10px;
-	// 					padding: 4px;
-	// 					background-color: #f5f5f5;
-	// 					border-radius: 4px;
-	// 				}
-	// 				.toolbar-button {
-	// 					margin-right: 8px;
-	// 					padding: 4px 8px;
-	// 					border: 1px solid #ccc;
-	// 					background-color: white;
-	// 					cursor: pointer;
-	// 					border-radius: 2px;
-	// 					font-weight: bold;
-	// 				}
-	// 				.toolbar-button.active {
-	// 					background-color: #e0e0e0;
-	// 				}
-	// 			`}</style>
-	// 		</div>
-	// 	);
-	// };
-
-	// const DefaultToolbar: React.FC<ToolbarProps> = ({ editorState, onToggle }) => {
-	// 	const currentStyle = editorState.getCurrentInlineStyle();
-	// 	return (
-	// 		<div
-	// 			style={{
-	// 				marginBottom: '10px',
-	// 				padding: '4px',
-	// 				backgroundColor: '#f5f5f5',
-	// 				borderRadius: '4px',
-	// 			}}
-	// 		>
-	// 			<button
-	// 				type='button'
-	// 				onClick={() => onToggle('BOLD')}
-	// 				style={{
-	// 					marginRight: '8px',
-	// 					padding: '4px 8px',
-	// 					border: '1px solid #ccc',
-	// 					backgroundColor: currentStyle.has('BOLD') ? '#e0e0e0' : 'white',
-	// 					cursor: 'pointer',
-	// 					borderRadius: '2px',
-	// 					fontWeight: 'bold',
-	// 				}}
-	// 			>
-	// 				Bold
-	// 			</button>
-	// 			<button
-	// 				type='button'
-	// 				onClick={() => onToggle('ITALIC')}
-	// 				style={{
-	// 					marginRight: '8px',
-	// 					padding: '4px 8px',
-	// 					border: '1px solid #ccc',
-	// 					backgroundColor: currentStyle.has('ITALIC') ? '#e0e0e0' : 'white',
-	// 					cursor: 'pointer',
-	// 					borderRadius: '2px',
-	// 					fontWeight: 'bold',
-	// 				}}
-	// 			>
-	// 				Italic
-	// 			</button>
-	// 			<button
-	// 				type='button'
-	// 				onClick={() => onToggle('UNDERLINE')}
-	// 				style={{
-	// 					marginRight: '8px',
-	// 					padding: '4px 8px',
-	// 					border: '1px solid #ccc',
-	// 					backgroundColor: currentStyle.has('UNDERLINE') ? '#e0e0e0' : 'white',
-	// 					cursor: 'pointer',
-	// 					borderRadius: '2px',
-	// 					fontWeight: 'bold',
-	// 				}}
-	// 			>
-	// 				Underline
-	// 			</button>
-	// 		</div>
-	// 	);
-	// };
 
 	return (
 		<div className={`wysiwyg-editor ${className}`} style={style}>

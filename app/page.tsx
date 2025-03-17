@@ -1,164 +1,126 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useState } from 'react';
 import { EditorState, convertFromRaw, convertToRaw } from 'draft-js';
 import dynamic from 'next/dynamic';
+import Button from '@/components/Button';
+import styles from '@/styles/Home.module.css';
+
 const WYSIWYGEditor = dynamic(() => import('../components/WYSIWYGEditor'), {
 	ssr: false,
+	loading: () => <div className={styles.emptySection}>Loading ...</div>,
 });
 
-export default function Home() {
+const LOAD_DELAY = 2000;
+const SAVE_DELAY = 1500;
+
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const ControlledEditorSection: React.FC = () => {
 	const [controlledState, setControlledState] = useState(EditorState.createEmpty());
 	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);
 
-	// Fake async content loading
 	const loadContent = async () => {
 		setLoading(true);
-		return new Promise<EditorState>((resolve) => {
-			setTimeout(() => {
-				const content = EditorState.createWithContent(
-					convertFromRaw({
-						entityMap: {},
-						blocks: [
-							{
-								key: 'block1',
-								text: 'This is fake async content loaded into the editor!',
-								type: 'unstyled',
-								entityRanges: [],
-								depth: 0,
-								inlineStyleRanges: [
-									{ offset: 0, length: 4, style: 'BOLD' },
-									{ offset: 8, length: 5, style: 'ITALIC' },
-								],
-							},
-						],
-					})
-				);
-				resolve(content);
-				setLoading(false);
-			}, 2000);
-		});
+		try {
+			await delay(LOAD_DELAY);
+			const content = EditorState.createWithContent(
+				convertFromRaw({
+					entityMap: {},
+					blocks: [
+						{
+							key: 'block1',
+							text: 'This is fake async content loaded into the editor!',
+							type: 'unstyled',
+							entityRanges: [],
+							depth: 0,
+							inlineStyleRanges: [
+								{ offset: 0, length: 4, style: 'BOLD' },
+								{ offset: 8, length: 5, style: 'ITALIC' },
+							],
+						},
+					],
+				})
+			);
+			setControlledState(content);
+		} catch (error) {
+			console.error('Failed to load content:', error);
+		} finally {
+			setLoading(false);
+		}
 	};
 
-	// Fake API save
 	const saveContent = async (editorState: EditorState) => {
 		setSaving(true);
-		return new Promise<void>((resolve) => {
-			setTimeout(() => {
-				const content = convertToRaw(editorState.getCurrentContent());
-				console.log('Fake API call', content);
-				setSaving(false);
-				resolve();
-			}, 1500);
-		});
-	};
-
-	const handleLoadContent = async () => {
-		const newContent = await loadContent();
-		setControlledState(newContent);
-	};
-
-	const handleSaveContent = async () => {
-		await saveContent(controlledState);
+		try {
+			await delay(SAVE_DELAY);
+			const content = convertToRaw(editorState.getCurrentContent());
+			console.log('Fake API call', content);
+		} catch (error) {
+			console.error('Failed to save content:', error);
+		} finally {
+			setSaving(false);
+		}
 	};
 
 	return (
-		<main style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-			<h1 className='text-center font-bold text-xl'>WYSIWYG Editor Demo</h1>
+		<section className={styles.section}>
+			<h2>Controlled Mode</h2>
+			<WYSIWYGEditor value={controlledState} onChange={setControlledState} className='custom-editor' />
+			<div className={styles.buttonGroup}>
+				<Button onClick={loadContent} disabled={loading} backgroundColor='#0070f3'>
+					{loading ? 'Loading...' : 'Load Async Content'}
+				</Button>
+				<Button onClick={() => saveContent(controlledState)} disabled={saving} backgroundColor='#28a745'>
+					{saving ? 'Saving...' : 'Save to Fake API'}
+				</Button>
+			</div>
+		</section>
+	);
+};
 
-			<section style={{ marginBottom: '40px' }}>
-				<h2>Controlled Mode</h2>
-				<WYSIWYGEditor value={controlledState} onChange={setControlledState} className='custom-editor' />
-				{/* Fake an async behaviour and send to a fake api */}
-				<div style={{ marginTop: '10px' }}>
+const UncontrolledEditorSection: React.FC = () => (
+	<section className={styles.section}>
+		<h2>Uncontrolled Mode</h2>
+		<WYSIWYGEditor />
+	</section>
+);
+
+const CustomToolbarSection: React.FC = () => (
+	<section className={styles.section}>
+		<h2>Custom Toolbar</h2>
+		<WYSIWYGEditor
+			renderToolbar={({ editorState, onToggle }) => (
+				<div className={styles.customToolbar}>
 					<button
-						onClick={handleLoadContent}
-						disabled={loading}
-						style={{
-							padding: '8px 16px',
-							marginRight: '10px',
-							backgroundColor: loading ? '#ccc' : '#0070f3',
-							color: 'white',
-							border: 'none',
-							borderRadius: '4px',
-							cursor: loading ? 'not-allowed' : 'pointer',
-						}}
+						onClick={() => onToggle('BOLD')}
+						className={`${styles.toolbarButton} ${editorState.getCurrentInlineStyle().has('BOLD') ? styles.toolbarButtonActive : ''} ${
+							styles.bold
+						}`}
 					>
-						{loading ? 'Loading...' : 'Load Async Content'}
+						Bold
 					</button>
-
 					<button
-						onClick={handleSaveContent}
-						disabled={saving}
-						style={{
-							padding: '8px 16px',
-							backgroundColor: saving ? '#ccc' : '#28a745',
-							color: 'white',
-							border: 'none',
-							borderRadius: '4px',
-							cursor: saving ? 'not-allowed' : 'pointer',
-						}}
+						onClick={() => onToggle('ITALIC')}
+						className={`${styles.toolbarButton} ${editorState.getCurrentInlineStyle().has('ITALIC') ? styles.toolbarButtonActive : ''} ${
+							styles.italic
+						}`}
 					>
-						{saving ? 'Saving...' : 'Save to Fake API'}
+						Italic
 					</button>
 				</div>
-			</section>
-
-			<section>
-				<h2>Uncontrolled Mode</h2>
-				<WYSIWYGEditor />
-			</section>
-
-			<section style={{ marginTop: '40px' }}>
-				<h2>Custom Toolbar</h2>
-
-				<section style={{ marginTop: '40px' }}>
-					<h2>Custom Toolbar</h2>
-					<WYSIWYGEditor
-						renderToolbar={({ editorState, onToggle }) => (
-							<div
-								style={{
-									marginBottom: '10px',
-									padding: '4px',
-									backgroundColor: '#f5f5f5',
-									borderRadius: '4px',
-								}}
-							>
-								<button
-									onClick={() => onToggle('BOLD')}
-									style={{
-										marginRight: '8px',
-										padding: '4px 8px',
-										border: '1px solid #ccc',
-										backgroundColor: editorState.getCurrentInlineStyle().has('BOLD') ? '#e0e0e0' : 'white',
-										cursor: 'pointer',
-										borderRadius: '2px',
-										fontWeight: 'bold',
-									}}
-								>
-									Bold
-								</button>
-								<button
-									onClick={() => onToggle('ITALIC')}
-									style={{
-										marginRight: '8px',
-										padding: '4px 8px',
-										border: '1px solid #ccc',
-										backgroundColor: editorState.getCurrentInlineStyle().has('ITALIC') ? '#e0e0e0' : 'white',
-										cursor: 'pointer',
-										borderRadius: '2px',
-										fontStyle: 'italic',
-									}}
-								>
-									Italic
-								</button>
-							</div>
-						)}
-					/>
-				</section>
-			</section>
+			)}
+		/>
+	</section>
+);
+export default function Home() {
+	return (
+		<main className={styles.container}>
+			<h1 className={styles.title}>WYSIWYG Editor Demo</h1>
+			<ControlledEditorSection />
+			<UncontrolledEditorSection />
+			<CustomToolbarSection />
 		</main>
 	);
 }

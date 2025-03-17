@@ -1,0 +1,60 @@
+.container {
+	padding: 20px;
+	max-width: 800px;
+	margin: 0 auto;
+}
+
+.title {
+	text-align: center;
+	font-weight: bold;
+	font-size: 1.25rem;
+}
+
+.section {
+	margin-bottom: 40px;
+}
+
+.buttonGroup {
+	margin-top: 10px;
+}
+
+.customToolbar {
+	margin-bottom: 10px;
+	padding: 4px;
+	background-color: #f5f5f5;
+	border-radius: 4px;
+}
+
+.toolbarButton {
+	margin-right: 8px;
+	padding: 4px 8px;
+	border: 1px solid #ccc;
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+.toolbarButtonActive {
+	background-color: #e0e0e0;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.italic {
+	font-style: italic;
+}
+
+.buttonGroup[aria-busy='true'] {
+	opacity: 0.8;
+}
+.emptySection {
+	min-height: 270px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+
+}
