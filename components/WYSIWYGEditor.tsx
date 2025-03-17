@@ -1,7 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import React, { useState, useEffect, CSSProperties, useCallback } from 'react';
 import { Editor, EditorState, RichUtils } from 'draft-js';
+import { ToolbarButton } from './ToolbarButton';
+import styles from '@/styles/WYSIWYGEditor.module.css';
 
 interface WYSIWYGEditorProps {
 	value?: EditorState;
@@ -18,11 +21,11 @@ interface ToolbarProps {
 
 const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({ value, onChange, className = '', style, renderToolbar }) => {
 	const [editorState, setEditorState] = useState(() => value || EditorState.createEmpty());
-	const [pendingStyle, setPendingStyle] = useState<string | null>(null); // تتبع التنسيق المعلق
+	const [pendingStyle, setPendingStyle] = useState<string | null>(null);
 
 	const isControlled = value !== undefined && onChange !== undefined;
 
-	// Controlled Mode
+	// Sync editor state in controlled mode
 	useEffect(() => {
 		if (isControlled && value !== editorState) {
 			setEditorState(value);
@@ -32,10 +35,16 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({ value, onChange, classNam
 	const handleEditorChange = useCallback(
 		(newEditorState: EditorState) => {
 			let updatedState = newEditorState;
-			// إذا كان هناك تنسيق معلق، نطبقه على الحالة الجديدة
-			if (pendingStyle && !newEditorState.getCurrentInlineStyle().has(pendingStyle)) {
-				updatedState = RichUtils.toggleInlineStyle(newEditorState, pendingStyle);
+			const selection = newEditorState.getSelection();
+
+			// If there is a pendingStyle and the text is not selected, apply the pending style
+			if (pendingStyle && selection.isCollapsed()) {
+				// Check if the pending style is not active, and apply it
+				if (!newEditorState.getCurrentInlineStyle().has(pendingStyle)) {
+					updatedState = RichUtils.toggleInlineStyle(newEditorState, pendingStyle);
+				}
 			}
+
 			setEditorState(updatedState);
 			if (onChange) {
 				onChange(updatedState);
@@ -58,109 +67,44 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({ value, onChange, classNam
 
 	const toggleInlineStyle = useCallback(
 		(style: string) => {
-			const currentStyle = editorState.getCurrentInlineStyle();
 			const selection = editorState.getSelection();
 
 			if (selection.isCollapsed()) {
-				// إذا لم يكن هناك تحديد، نحتفظ بالتنسيق كمعلق
-				if (currentStyle.has(style)) {
-					setPendingStyle(null); // إلغاء التنسيق إذا كان نشطًا
-				} else {
-					setPendingStyle(style); // تفعيل التنسيق كمعلق
-					const newState = RichUtils.toggleInlineStyle(editorState, style);
-					handleEditorChange(newState);
-				}
-			} else {
-				// إذا كان هناك تحديد، نطبق التنسيق مباشرة
+				setPendingStyle(pendingStyle === style ? null : style);
 				const newState = RichUtils.toggleInlineStyle(editorState, style);
 				handleEditorChange(newState);
-				setPendingStyle(null); // لا حاجة لتنسيق معلق عند التحديد
+
+				return;
 			}
+
+			const newState = RichUtils.toggleInlineStyle(editorState, style);
+			setPendingStyle(null);
+			handleEditorChange(newState);
 		},
-		[editorState, handleEditorChange]
+		[editorState, pendingStyle, handleEditorChange]
 	);
 
 	const DefaultToolbar: React.FC<ToolbarProps> = ({ editorState, onToggle }) => {
 		const currentStyle = editorState.getCurrentInlineStyle();
 		return (
-			<div
-				style={{
-					marginBottom: '10px',
-					padding: '4px',
-					backgroundColor: '#f5f5f5',
-					borderRadius: '4px',
-				}}
-			>
-				<button
-					type='button'
-					onClick={() => onToggle('BOLD')}
-					style={{
-						marginRight: '8px',
-						padding: '4px 8px',
-						border: '1px solid #ccc',
-						backgroundColor: currentStyle.has('BOLD') ? '#e0e0e0' : 'white',
-						cursor: 'pointer',
-						borderRadius: '2px',
-						fontWeight: 'bold',
-					}}
-				>
-					Bold
-				</button>
-				<button
-					type='button'
-					onClick={() => onToggle('ITALIC')}
-					style={{
-						marginRight: '8px',
-						padding: '4px 8px',
-						border: '1px solid #ccc',
-						backgroundColor: currentStyle.has('ITALIC') ? '#e0e0e0' : 'white',
-						cursor: 'pointer',
-						borderRadius: '2px',
-						fontWeight: 'bold',
-					}}
-				>
-					Italic
-				</button>
-				<button
-					type='button'
-					onClick={() => onToggle('UNDERLINE')}
-					style={{
-						marginRight: '8px',
-						padding: '4px 8px',
-						border: '1px solid #ccc',
-						backgroundColor: currentStyle.has('UNDERLINE') ? '#e0e0e0' : 'white',
-						cursor: 'pointer',
-						borderRadius: '2px',
-						fontWeight: 'bold',
-					}}
-				>
-					Underline
-				</button>
+			<div className={styles.toolbar}>
+				<ToolbarButton label='Bold' style='BOLD' active={currentStyle.has('BOLD')} onToggle={onToggle} />
+				<ToolbarButton label='Italic' style='ITALIC' active={currentStyle.has('ITALIC')} onToggle={onToggle} />
+				<ToolbarButton label='Underline' style='UNDERLINE' active={currentStyle.has('UNDERLINE')} onToggle={onToggle} />
 			</div>
 		);
 	};
 
 	return (
-		<div className={`wysiwyg-editor ${className}`} style={style}>
+		<div className={`${styles.editor} ${className}`} style={style}>
 			{renderToolbar ? (
 				renderToolbar({ editorState, onToggle: toggleInlineStyle })
 			) : (
 				<DefaultToolbar editorState={editorState} onToggle={toggleInlineStyle} />
 			)}
-			<div className='editor-container'>
-				<Editor editorState={editorState} onChange={handleEditorChange} handleKeyCommand={handleKeyCommand} />
+			<div className={styles.editorContainer}>
+				<Editor editorState={editorState} onChange={handleEditorChange} handleKeyCommand={handleKeyCommand} aria-label='Rich Text Editor' />
 			</div>
-			<style jsx>{`
-				.wysiwyg-editor {
-					border: 1px solid #ccc;
-					padding: 8px;
-					border-radius: 4px;
-				}
-				.editor-container {
-					min-height: 200px;
-					padding: 8px;
-				}
-			`}</style>
 		</div>
 	);
 };
