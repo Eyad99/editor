@@ -11,6 +11,7 @@ export const ToolbarButton: React.FC<{
 		onClick={() => onToggle(style)}
 		className={`${styles.toolbarButton} ${active ? styles.active : ''}`}
 		aria-pressed={active}
+		aria-label={label}
 	>
 		{label}
 	</button>
